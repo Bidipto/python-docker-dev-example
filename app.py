@@ -27,7 +27,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(title='My docker compose enables server', lifespan=lifespan)
 
 
 @app.get("/")
