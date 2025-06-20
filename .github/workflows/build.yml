@@ -37,8 +37,16 @@ jobs:
 
     - name: Update build number in values-dev.yaml
       run: |
+        # Show current content for debugging
+        echo "Current values-dev.yaml content:"
+        cat helm-webapp/values-dev.yaml
+        
         # Update the tag with GitHub run number
-        sed -i "s/tag: .*/tag: ${{ github.run_number }}/" helm-webapp/values-dev.yaml
+        sed -i "s/^tag: .*/tag: ${{ github.run_number }}/" helm-webapp/values-dev.yaml
+        
+        # Show updated content
+        echo "Updated values-dev.yaml content:"
+        cat helm-webapp/values-dev.yaml
         
         echo "Updated build number to ${{ github.run_number }}"
 
@@ -46,6 +54,13 @@ jobs:
       run: |
         git config user.name "GitHub Action"
         git config user.email "action@github.com"
-        git add helm-webapp/values-dev.yaml
-        git commit -m "Update build number to ${{ github.run_number }}"
-        git push
+        
+        # Check if there are changes to commit
+        if git diff --quiet helm-webapp/values-dev.yaml; then
+          echo "No changes detected in values-dev.yaml"
+          exit 0
+        else
+          git add helm-webapp/values-dev.yaml
+          git commit -m "Update build number to ${{ github.run_number }}"
+          git push
+        fi
