@@ -23,3 +23,29 @@ jobs:
         with:
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.run_number }}
+          
+  update-helm-chart:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Helm chart repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository_owner }}/argo-examples
+        token: ${{ secrets.PAT_TOKEN }}
+
+    - name: Update build number in values-dev.yaml
+      run: |
+        # Update the tag with GitHub run number
+        sed -i "s/tag: .*/tag: ${{ github.run_number }}/" helm-webapp/values-dev.yaml
+        
+        echo "Updated build number to ${{ github.run_number }}"
+
+    - name: Commit and push changes
+      run: |
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+        git add helm-webapp/values-dev.yaml
+        git commit -m "Update build number to ${{ github.run_number }}"
+        git push
